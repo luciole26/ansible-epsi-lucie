@@ -4,21 +4,26 @@
   tasks:
   - name: Install apache
     apt:
-      name: apache2
+      update_cache: true
+      name: 
+      - apache2
+      - vim
+      - htop
       state: present
 
-  - name: Install vim
-    apt:
-      name: vim
-      state: present
-  
-  - name: Install htop
-    apt:
-      name: htop
-      state: present
+  #- name: Install vim
+  #  apt:
+  #    name: vim
+  #    state: present
 
   - name: Start apache2
     service:
       name: apache2
       state: started
       enabled: yes
+
+  - name: Disable vim bell
+    lineinfile: 
+      path: /etc/vimrc
+      line: "set belloff=all"
+      create: yes

@@ -1,0 +1,27 @@
+- name: Create file & perm
+  hosts: STG_HAPROXY
+
+  tasks:
+  - name: Create directory
+    ansible.builtin.file:
+      path: /root/test
+      state: directory
+      mode: "755"
+
+  - name: Create file with permissions
+    file:
+      path: /root/test/fichier_test
+      state: touch
+      #mode: u+rwx, g-wx, o-wx
+      mode: '0744'
+    #- {path: /root/test/fichier_test, owner: root, group: root, mode: '0744'}
+
+  - name: Check rights on file
+    ansible.builtin.shell:
+      cmd: ls -al
+      chdir: /root/test
+
+  - name: Move index file
+    template: 
+      src: files/index.html
+      dest: /var/www/html

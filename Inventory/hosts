@@ -13,6 +13,13 @@ mysql02
 haproxy01
 haproxy02
 
+[STG:children]
+STG_HAPROXY
+STG_APACHE
+
+[STG_HAPROXY:vars]
+role=test
+
 [STG_APACHE]
 apache01
 apache02
