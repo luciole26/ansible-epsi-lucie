@@ -18,10 +18,10 @@
 
   - name: Check rights on file
     ansible.builtin.shell:
-      cmd: ls -al
+      cmd: ls -al 
       chdir: /root/test
 
   - name: Move index file
     template: 
-      src: files/index.html
-      dest: /var/www/html
+      src: index.html
+      dest: /var/www/html/index.html

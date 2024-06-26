@@ -1,21 +1,10 @@
-[STG]
-haproxy01
-haproxy02
-apache01
-apache02
-apache03
-apache04
-apache05
-mysql01
-mysql02
+[STG:children]
+STG_HAPROXY
+STG_APACHE
 
 [STG_HAPROXY]
 haproxy01
 haproxy02
-
-[STG:children]
-STG_HAPROXY
-STG_APACHE
 
 [STG_HAPROXY:vars]
 role=test

@@ -1,8 +1,9 @@
 - name: Install packages
   hosts: STG_HAPROXY
+  gather_facts: false
 
   tasks:
-  - name: Install apache
+  - name: Install apache, vim & htop
     apt:
       update_cache: true
       name: 
