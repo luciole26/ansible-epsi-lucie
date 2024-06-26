@@ -20,5 +20,5 @@
   - name: Start apache2
     service:
       name: apache2
-      state: present
+      state: started
       enabled: yes
