@@ -1,0 +1,24 @@
+- name: Install packages
+  hosts: STG_HAPROXY
+
+  tasks:
+  - name: Install apache
+    apt:
+      name: apache2
+      state: present
+
+  - name: Install vim
+    apt:
+      name: vim
+      state: present
+  
+  - name: Install htop
+    apt:
+      name: htop
+      state: present
+
+  - name: Start apache2
+    service:
+      name: apache2
+      state: present
+      enabled: yes
