@@ -4,12 +4,13 @@
   become: true
 
   tasks:
+  #SETP 1
     - name: Update & Upgrade
       apt:
         update_cache: true
         upgrade: yes
 
-    - name: Packages
+    - name: Install dependencies
       apt:
         name: 
         - lsb-release 
@@ -19,6 +20,7 @@
         - wget 
         - gnupg2 
         - curl
+        - python3-pymysql
         state: present
 
     - name: Install repository
@@ -31,16 +33,14 @@
         url: https://packages.sury.org/php/apt.gpg
         state: present
 
-
     - name: Download mariadb 10.11 script
       ansible.builtin.get_url:
         url: https://r.mariadb.com/downloads/mariadb_repo_setup
         dest: /tmp/mariadb.sh
         mode: "+x"
       
-    - name: Execute mariadb script
+    - name: Install mariadb - Exec script
       command: bash /tmp/mariadb.sh -s -- --os-type=debian --os-version=11 --mariadb-server-version="mariadb-10.11"
-
 
     - name: Install centreon
       template:
@@ -56,8 +56,102 @@
       apt_key: 
         url: https://apt-key.centreon.com
         state: present
-    
-    
+
     - name: Update after adding repo & keys
       apt:
         update_cache: true
+
+#STEP 2
+    - name: Install centreon
+      apt:
+        install_recommends: false
+        force: true
+        name: 
+        - centreon-mariadb
+        - centreon
+        state: present
+            
+    - name: Force systemd to reread config
+      systemd:
+        daemon_reload: true
+    
+    - name: Restart Mariadb
+      service:
+        name: mariadb
+        state: restarted
+
+#STEP 3
+    - name: Modify php8.1 timezone
+      lineinfile: 
+        path: /etc/php/8.1/mods-available/centreon.ini
+        line: "date.timezone = Europe/Paris"
+        create: yes
+
+    - name: Restart php 8.1
+      service:
+        name: php8.1-fpm
+        state: restarted
+    
+    - name: Enable services
+      service:
+        name: "{{item}}"
+        enabled: yes
+      with_items:
+        - php8.1-fpm 
+        - apache2
+        - centreon 
+        - cbd 
+        - centengine
+        - gorgoned 
+        - centreontrapd 
+        - snmpd 
+        - snmptrapd
+
+    - name: Restart & Enable Mariadb
+      service:
+        name: mariadb
+        state: restarted
+        enabled: yes
+
+    #mysql_secure_installation
+      # Be sure to install the module mysql_user before running those cmds after
+      # Do : ansible-galaxy collection install community.mysql
+    # Don't forget to change the root password {{ your_password_here }} by yours. Is has to be modify in the mariadb.cnf.j2 too
+
+    - name: Update MariaDB root password
+      community.mysql.mysql_user:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        login_user: "root"
+        login_password: "root"
+        name: "root"
+        host: localhost
+        password: "{{ your_password_here }}"
+      
+    - name: Set ~/.my.cnf file
+      template: 
+        src: mariadb.cnf.j2 
+        dest: /root/.my.cnf 
+        mode: 0600
+
+    - name: Removes all anonymous user accounts
+      mysql_user:
+        name: ''
+        host_all: true
+        state: absent
+        
+    - name: Remove MySQL test database
+      mysql_db: 
+        name: test 
+        state: absent
+
+    - name: Delete Hostname based MySQL user
+      mysql_user:
+        name: root 
+        host: "{{ansible_nodename}}" 
+        state: absent
+
+    - name: Restart Apache2
+      service:
+        name: apache2
+        state: started
+
