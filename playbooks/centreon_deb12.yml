@@ -1,5 +1,6 @@
 - name: Installation de Centreon sur Debian 12
-  hosts: STG_HAPROXY
+  hosts: {{ GROUP_HERE }}
+  # REPLACE GROUP_HERE by your own group of srvs
   gather_facts: true
   become: true
 
@@ -20,6 +21,7 @@
         - wget 
         - gnupg2 
         - curl
+        - mariadb-server
         - python3-pymysql
         state: present
 
